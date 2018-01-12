@@ -1,6 +1,6 @@
 <?php
 /**
- * Copyright © Magento, Inc. All rights reserved.
+ * Copyright © 2016 Magento. All rights reserved.
  * See COPYING.txt for license details.
  */
 
@@ -11,8 +11,6 @@ use Magento\Customer\Test\Fixture\Customer;
 use Magento\Mtf\Constraint\AbstractConstraint;
 use Magento\Catalog\Test\Page\Product\CatalogProductView;
 use Magento\Catalog\Test\Page\Category\CatalogCategoryView;
-use Magento\Customer\Test\TestStep\LoginCustomerOnFrontendStep;
-use Magento\Customer\Test\TestStep\LogoutCustomerOnFrontendStep;
 
 /**
  * Assert that Catalog Price Rule is applied on Product page.
@@ -40,11 +38,11 @@ class AssertCatalogPriceRuleAppliedProductPage extends AbstractConstraint
     ) {
         if ($customer !== null) {
             $this->objectManager->create(
-                LoginCustomerOnFrontendStep::class,
+                '\Magento\Customer\Test\TestStep\LoginCustomerOnFrontendStep',
                 ['customer' => $customer]
             )->run();
         } else {
-            $this->objectManager->create(LogoutCustomerOnFrontendStep::class)->run();
+            $this->objectManager->create('\Magento\Customer\Test\TestStep\LogoutCustomerOnFrontendStep')->run();
         }
 
         $cmsIndexPage->open();
@@ -54,12 +52,10 @@ class AssertCatalogPriceRuleAppliedProductPage extends AbstractConstraint
             $catalogCategoryViewPage->getListProductBlock()->getProductItem($product)->open();
 
             $catalogProductViewPage->getViewBlock()->waitLoader();
-            $productPriceBlock = $catalogProductViewPage->getViewBlock()->getPriceBlock($product);
+            $productPriceBlock = $catalogProductViewPage->getViewBlock()->getPriceBlock();
+            $actualPrice['regular'] = $productPriceBlock->getOldPrice();
             $actualPrice['special'] = $productPriceBlock->getSpecialPrice();
-            if ($productPrice[$key]['regular'] !== 'No') {
-                $actualPrice['regular'] = $productPriceBlock->getOldPrice();
-                $actualPrice['discount_amount'] = $actualPrice['regular'] - $actualPrice['special'];
-            }
+            $actualPrice['discount_amount'] = $actualPrice['regular'] - $actualPrice['special'];
             $diff = $this->verifyData($actualPrice, $productPrice[$key]);
             \PHPUnit_Framework_Assert::assertTrue(
                 empty($diff),

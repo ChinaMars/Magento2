@@ -2,14 +2,17 @@
 /**
  * Store configuration edit form.
  *
- * Copyright © Magento, Inc. All rights reserved.
+ * Copyright © 2016 Magento. All rights reserved.
  * See COPYING.txt for license details.
  */
 namespace Magento\Backend\Test\Block\System\Config;
 
-use Magento\Mtf\Block\Block;
-use Magento\Mtf\Client\Locator;
 use Magento\Mtf\Factory\Factory;
+use Magento\Mtf\Block\BlockFactory;
+use Magento\Mtf\Block\Block;
+use Magento\Mtf\Client\ElementInterface;
+use Magento\Mtf\Client\BrowserInterface;
+use Magento\Mtf\Client\Locator;
 
 /**
  * Class Form.
@@ -52,6 +55,26 @@ class Form extends Block
     protected $baseUrl;
 
     /**
+     * @constructor
+     * @param ElementInterface $element
+     * @param BlockFactory $blockFactory
+     * @param BrowserInterface $browser
+     * @param array $config
+     */
+    public function __construct(
+        ElementInterface $element,
+        BlockFactory $blockFactory,
+        BrowserInterface $browser,
+        array $config = []
+    ) {
+        parent::__construct($element, $blockFactory, $browser, $config);
+        $this->baseUrl = $this->browser->getUrl();
+        if (substr($this->baseUrl, -1) !== '/') {
+            $this->baseUrl = $this->baseUrl . '/';
+        }
+    }
+
+    /**
      * Obtain store configuration form group.
      *
      * @param string $tabName
@@ -60,7 +83,11 @@ class Form extends Block
      */
     public function getGroup($tabName, $groupName)
     {
-        $this->openTab($tabName);
+        $tabUrl = $this->baseUrl . 'section/' . $tabName;
+        if ($this->getBrowserUrl() !== $tabUrl) {
+            $this->browser->open($tabUrl);
+        }
+        $this->waitForElementNotVisible($this->tabReadiness);
 
         $groupElement = $this->_rootElement->find(
             sprintf($this->groupBlock, $tabName, $groupName),
@@ -86,24 +113,6 @@ class Form extends Block
     }
 
     /**
-     * Check whether specified group presented on page.
-     *
-     * @param string $tabName
-     * @param string $groupName
-     *
-     * @return bool
-     */
-    public function isGroupVisible(string $tabName, string $groupName)
-    {
-        $this->openTab($tabName);
-
-        return $this->_rootElement->find(
-            sprintf($this->groupBlockLink, $tabName, $groupName),
-            Locator::SELECTOR_CSS
-        )->isVisible();
-    }
-
-    /**
      * Retrieve url associated with the form.
      */
     public function getBrowserUrl()
@@ -117,52 +126,5 @@ class Form extends Block
     public function save()
     {
         $this->_rootElement->find($this->saveButton, Locator::SELECTOR_CSS)->click();
-    }
-
-    /**
-     * Checks whether secret key is presented in base url and returns menu tab url.
-     *
-     * @param string $tabName
-     * @return string
-     */
-    private function getTabUrl($tabName)
-    {
-        $tabIndex = 'index/section/' . $tabName;
-        if (strpos($this->baseUrl, $tabIndex) !== false) {
-            return $this->baseUrl;
-        }
-        if (strpos($this->baseUrl, '/key/') !== false) {
-            /*
-             * Slashes are concatenated to cover case when string 'index' presented in domain name
-             * or somewhere else in url additionally.
-             */
-            $tabUrl =  str_replace('/index/', '/' . $tabIndex . '/', $this->baseUrl);
-        } elseif (strpos($this->baseUrl, '/edit/') !== false) {
-            $tabUrl =  str_replace('/edit/', '/' . $tabIndex . '/', $this->baseUrl);
-        } else {
-            $tabUrl = $this->baseUrl . $tabIndex;
-        }
-
-        return $tabUrl;
-    }
-
-    /**
-     * Open specified tab.
-     *
-     * @param string $tabName
-     * @return void
-     */
-    private function openTab(string $tabName)
-    {
-        $this->baseUrl = $this->getBrowserUrl();
-        if (substr($this->baseUrl, -1) !== '/') {
-            $this->baseUrl = $this->baseUrl . '/';
-        }
-        $tabUrl = $this->getTabUrl($tabName);
-
-        if ($this->getBrowserUrl() !== $tabUrl) {
-            $this->browser->open($tabUrl);
-        }
-        $this->waitForElementNotVisible($this->tabReadiness);
     }
 }

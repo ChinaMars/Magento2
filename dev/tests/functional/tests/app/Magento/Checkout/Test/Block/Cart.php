@@ -1,6 +1,6 @@
 <?php
 /**
- * Copyright © Magento, Inc. All rights reserved.
+ * Copyright © 2016 Magento. All rights reserved.
  * See COPYING.txt for license details.
  */
 
@@ -62,7 +62,7 @@ class Cart extends Block
      *
      * @var string
      */
-    protected $inContextPaypalCheckoutButton = 'ul.checkout-methods-items a[data-action="paypal-in-context-checkout"]';
+    protected $inContextPaypalCheckoutButton = '#paypal-express-in-context-mini-cart';
 
     /**
      * Locator value for "Check out with Braintree PayPal" button.
@@ -100,13 +100,6 @@ class Cart extends Block
     protected $preloaderSpinner = '#preloaderSpinner';
 
     /**
-     * Cart item class name.
-     *
-     * @var string
-     */
-    protected $cartItemClass = \Magento\Checkout\Test\Block\Cart\CartItem::class;
-
-    /**
      * Wait for PayPal page is loaded.
      *
      * @return void
@@ -136,7 +129,7 @@ class Cart extends Block
                 Locator::SELECTOR_XPATH
             );
             $cartItem = $this->blockFactory->create(
-                $this->cartItemClass,
+                'Magento\Checkout\Test\Block\Cart\CartItem',
                 ['element' => $cartItemBlock]
             );
         }
@@ -184,7 +177,6 @@ class Cart extends Block
      */
     public function inContextPaypalCheckout()
     {
-        $this->waitForCheckoutButton();
         $this->_rootElement->find($this->inContextPaypalCheckoutButton)->click();
         $this->browser->selectWindow();
         $this->waitForFormLoaded();
@@ -262,15 +254,5 @@ class Cart extends Block
     public function waitCartContainerLoading()
     {
         $this->waitForElementVisible($this->cartContainer);
-    }
-
-    /**
-     * Wait until in-context checkout button is visible.
-     *
-     * @return void
-     */
-    public function waitForCheckoutButton()
-    {
-        $this->waitForElementVisible($this->inContextPaypalCheckoutButton);
     }
 }

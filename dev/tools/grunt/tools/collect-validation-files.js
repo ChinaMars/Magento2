@@ -1,10 +1,10 @@
 /**
- * Copyright © Magento, Inc. All rights reserved.
+ * Copyright © 2016 Magento. All rights reserved.
  * See COPYING.txt for license details.
  */
 
 /**
- * Copyright © Magento, Inc. All rights reserved.
+ * Copyright © 2016 Magento. All rights reserved.
  * See COPYING.txt for license details.
  */
 'use strict';
@@ -27,6 +27,7 @@ module.exports = {
     },
 
     getFilesForValidate: function () {
+
         var blackListFiles = glob.sync(pc.static.blacklist + '*.txt'),
             whiteListFiles = glob.sync(pc.static.whitelist + '*.txt'),
             blackList = this.readFiles(blackListFiles),
